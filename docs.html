@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Usabilidade Scanner de Folhas de Presença</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f4f4;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      background: #fff;
+      max-width: 800px;
+      margin: 30px auto;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.09);
+      padding: 28px 22px 22px 22px;
+    }
+    h1, h2, h3 {
+      color: #222;
+      margin-top: 0.9em;
+    }
+    h1 {
+      text-align: center;
+      font-size: 1.5em;
+      margin-bottom: 0.2em;
+    }
+    ul, ol { margin-top: 0.4em; }
+    button {
+      
+      background: #007bff;
+      color: #fff;
+      border: none;
+      padding: 12px 22px;
+      border-radius: 6px;
+      font-size: 1em;
+      cursor: pointer;
+      margin-bottom: 10px;
+      margin-top: 10px;
+      transition: background 0.2s;
+      display: block;
+      margin-left: auto;
+      margin-right: auto;
+      display: none;
+    }
+    button:hover {
+      background: #0056b3;
+    }
+    pre {
+      white-space: pre-wrap;
+      background: #f6f6f6;
+      padding: 8px 12px;
+      border-radius: 5px;
+      font-size: 0.98em;
+      color: #444;
+      margin-top: 0.5em;
+    }
+    @media (max-width: 600px) {
+      .container { padding: 10px 4vw;}
+      h1 { font-size: 1.2em;}
+    }
+  </style>
+</head>
+<body>
+  <div class="container" id="doc-content">
+    <h1>Documento de Usabilidade Proposta do Site</h1>
+    <h2>Scanner de Folhas de Presença</h2>
+    <hr>
+    <h3>1. Objetivo do Site</h3>
+    <p>
+      O site tem como objetivo facilitar o envio digital de folhas de presença, permitindo ao usuário:
+    </p>
+    <ul>
+      <li>Cadastrar informações da Casa de Oração, mês/ano de competência e período de dias.</li>
+      <li>Adicionar múltiplos "Livros" (categorias de folhas).</li>
+      <li>Anexar imagens das folhas, via upload ou captura direta da câmera.</li>
+      <li>Gerar um arquivo PDF único contendo todas as folhas, pronto para ser compartilhado ou baixado, promovendo organização, centralização e praticidade no envio dessas informações.</li>
+    </ul>
+    <h3>2. Fluxo Básico de Uso</h3>
+    <ol>
+      <li><strong>Acesso ao formulário:</strong> O usuário vê um formulário centralizado no site, com campos claros e instruções de destaque (alerta para ignorar folhas amarelas/carbono).</li>
+      <li><strong>Preenchimento dos dados gerais:</strong> Preenche os campos obrigatórios:
+        <ul>
+          <li>Casa de Oração (texto)</li>
+          <li>Ano/Mês de Competência (seletor de mês)</li>
+          <li>Período de Dias (texto)</li>
+        </ul>
+      </li>
+      <li><strong>Inclusão de Livros:</strong> O usuário pode:
+        <ul>
+          <li>Informar o nome do livro.</li>
+          <li>Adicionar imagens (via upload de arquivos ou câmera do dispositivo).</li>
+          <li>Adicionar quantos livros forem necessários, com o botão “Adicionar Livro”.</li>
+        </ul>
+      </li>
+      <li><strong>Adição de Imagens</strong>
+        <ul>
+          <li><u>Upload:</u> Seleciona múltiplas imagens do dispositivo.</li>
+          <li><u>Câmera:</u> Abre modal para captura de foto(s) usando a câmera do dispositivo, com pré-visualização e confirmação das imagens.</li>
+        </ul>
+      </li>
+      <li><strong>Pré-visualização:</strong> O usuário vê miniaturas das imagens carregadas, por livro, facilitando conferência antes do envio.</li>
+      <li><strong>Geração do PDF:</strong> Ao clicar em “Gerar PDF e Enviar”:
+        <ul>
+          <li>As imagens de todos os livros são organizadas e agrupadas em um PDF.</li>
+          <li>O arquivo pode ser compartilhado via Web Share API (em navegadores suportados) ou baixado automaticamente.</li>
+          <li>Mensagem de carregamento é exibida durante o processamento.</li>
+        </ul>
+      </li>
+    </ol>
+    <h3>3. Elementos de Usabilidade Implementados</h3>
+    <ul>
+      <li><b>Layout e Organização:</b>
+        <ul>
+          <li>Centralização do conteúdo e containers para fácil leitura.</li>
+          <li>Responsividade para telas grandes e pequenas.</li>
+          <li>Separação visual entre seções (alerta, formulário, pré-visualização).</li>
+        </ul>
+      </li>
+      <li><b>Acessibilidade:</b>
+        <ul>
+          <li>Rótulos (<code>label</code>) claros e alinhados aos inputs.</li>
+          <li>Botões grandes e bem identificados.</li>
+          <li>Alerta visual destacado com cor e ícone para instruções importantes.</li>
+        </ul>
+      </li>
+      <li><b>Facilidade de Uso:</b>
+        <ul>
+          <li>Campos obrigatórios com validação.</li>
+          <li>Botão de adicionar livros permite flexibilidade.</li>
+          <li>Uploads múltiplos em cada livro.</li>
+          <li>Captura por câmera integrada, com fallback.</li>
+          <li>Pré-visualização imediata das imagens.</li>
+          <li>Modal de câmera com confirmação/cancelamento e feedback visual.</li>
+        </ul>
+      </li>
+      <li><b>Feedback ao Usuário:</b>
+        <ul>
+          <li>Indicador de carregamento durante a geração do PDF.</li>
+          <li>Mensagens de erro/alerta para campos obrigatórios e problemas de câmera.</li>
+          <li>Confirmação visual das imagens capturadas e carregadas.</li>
+        </ul>
+      </li>
+      <li><b>Compatibilidade e Acessibilidade Progressiva:</b>
+        <ul>
+          <li>Web Share API utilizada quando disponível para compartilhamento direto do PDF.</li>
+          <li>Fallback para download automático se não suportado.</li>
+          <li>Uso de jsPDF garante portabilidade do PDF.</li>
+        </ul>
+      </li>
+    </ul>
+    <h3>4. Destaques Diferenciais</h3>
+    <ul>
+      <li><b>Processo todo digital</b>: da captura das folhas até o envio, sem aplicativos externos.</li>
+      <li><b>Apoio a dispositivos móveis</b>: uso da câmera do smartphone para agilidade.</li>
+      <li><b>Multi-categorias</b>: separação por “Livro”.</li>
+      <li><b>Orientações claras</b>: reduz erros de envio.</li>
+      <li><b>Geração automatizada de PDF</b>: elimina etapas manuais e padroniza envios.</li>
+    </ul>
+<!--     <h3>5. Pontos de Melhoria Recomendados</h3>
+    <ul>
+      <li><b>Acessibilidade:</b> Adicionar suporte a leitores de tela (ARIA, descrições alternativas detalhadas).</li>
+      <li><b>Feedback pós-envio:</b> Mensagem de sucesso ou erro após compartilhamento/envio do PDF.</li>
+      <li><b>Edição/remoção de imagens:</b> Permitir ao usuário remover imagens antes de gerar o PDF.</li>
+      <li><b>Validação avançada:</b> Exemplos automáticos para o campo “Período de Dias”, ou uso de campos de data dupla.</li>
+      <li><b>Histórico/local storage:</b> Guardar temporariamente dados não enviados em caso de recarregamento de página.</li>
+    </ul> -->
+    <h3>5. Conclusão</h3>
+    <p>
+      O site propõe uma solução eficiente, intuitiva e moderna para digitalização e envio de folhas de presença, com foco na usabilidade para usuários não técnicos, principalmente em dispositivos móveis. O fluxo é pensado para minimizar erros, reduzir atritos e acelerar o processo de envio, com interface amigável e recursos de feedback visual constantes, promovendo uma experiência segura e produtiva.
+    </p>
+<!--     <p style="font-size:0.9em;color:#444;">
+      <em>Obs.: Este documento pode ser utilizado como suporte para testes de usabilidade, planejamento de treinamento de usuários ou como base para comunicação de requisitos ao time de desenvolvimento e design.</em>
+    </p> -->
+    <button onclick="generatePDF()">Gerar PDF deste documento</button>
+  </div>
+  <script>
+    window.generatePDF = function () {
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF({
+        orientation: 'p',
+        unit: 'mm',
+        format: 'a4'
+      });
+
+      const docTitle = 'Documento de Usabilidade Proposta do Site\nScanner de Folhas de Presença';
+      const docContent = `
+1. Objetivo do Site
+
+O site tem como objetivo facilitar o envio digital de folhas de presença, permitindo ao usuário:
+• Cadastrar informações da Casa de Oração, mês/ano de competência e período de dias.
+• Adicionar múltiplos "Livros" (categorias de folhas).
+• Anexar imagens das folhas, via upload ou captura direta da câmera.
+• Gerar um arquivo PDF único contendo todas as folhas, pronto para ser compartilhado ou baixado, promovendo organização, centralização e praticidade no envio dessas informações.
+
+2. Fluxo Básico de Uso
+
+1. Acesso ao formulário
+   O usuário vê um formulário centralizado no site, com campos claros e instruções de destaque (alerta para ignorar folhas amarelas/carbono).
+2. Preenchimento dos dados gerais
+   Preenche os campos obrigatórios:
+   - Casa de Oração (texto)
+   - Ano/Mês de Competência (seletor de mês)
+   - Período de Dias (texto)
+3. Inclusão de Livros
+   O usuário pode:
+   - Informar o nome do livro.
+   - Adicionar imagens (via upload de arquivos ou câmera do dispositivo).
+   - Adicionar quantos livros forem necessários, com o botão “Adicionar Livro”.
+4. Adição de Imagens
+   - Upload: Seleciona múltiplas imagens do dispositivo.
+   - Câmera: Abre modal para captura de foto(s) usando a câmera do dispositivo, com pré-visualização e confirmação das imagens.
+5. Pré-visualização
+   O usuário vê miniaturas das imagens carregadas, por livro, facilitando conferência antes do envio.
+6. Geração do PDF
+   Ao clicar em “Gerar PDF e Enviar”:
+   - As imagens de todos os livros são organizadas e agrupadas em um PDF.
+   - O arquivo pode ser compartilhado via Web Share API (em navegadores suportados) ou baixado automaticamente.
+   - Mensagem de carregamento é exibida durante o processamento.
+
+3. Elementos de Usabilidade Implementados
+
+• Layout e Organização:
+  - Centralização do conteúdo e containers para fácil leitura.
+  - Responsividade para telas grandes e pequenas.
+  - Separação visual entre seções (alerta, formulário, pré-visualização).
+• Acessibilidade:
+  - Rótulos (label) claros e alinhados aos inputs.
+  - Botões grandes e bem identificados.
+  - Alerta visual destacado com cor e ícone para instruções importantes.
+• Facilidade de Uso:
+  - Campos obrigatórios com validação.
+  - Botão de adicionar livros permite flexibilidade.
+  - Uploads múltiplos em cada livro.
+  - Captura por câmera integrada, com fallback.
+  - Pré-visualização imediata das imagens.
+  - Modal de câmera com confirmação/cancelamento e feedback visual.
+• Feedback ao Usuário:
+  - Indicador de carregamento durante a geração do PDF.
+  - Mensagens de erro/alerta para campos obrigatórios e problemas de câmera.
+  - Confirmação visual das imagens capturadas e carregadas.
+• Compatibilidade e Acessibilidade Progressiva:
+  - Web Share API utilizada quando disponível para compartilhamento direto do PDF.
+  - Fallback para download automático se não suportado.
+  - Uso de jsPDF garante portabilidade do PDF.
+
+4. Destaques Diferenciais
+
+• Processo todo digital: da captura das folhas até o envio, sem aplicativos externos.
+• Apoio a dispositivos móveis: uso da câmera do smartphone para agilidade.
+• Multi-categorias: separação por “Livro”.
+• Orientações claras: reduz erros de envio.
+• Geração automatizada de PDF: elimina etapas manuais e padroniza envios.
+
+5. Pontos de Melhoria Recomendados
+
+• Acessibilidade: Adicionar suporte a leitores de tela (ARIA, descrições alternativas detalhadas).
+• Feedback pós-envio: Mensagem de sucesso ou erro após compartilhamento/envio do PDF.
+• Edição/remoção de imagens: Permitir ao usuário remover imagens antes de gerar o PDF.
+• Validação avançada: Exemplos automáticos para o campo “Período de Dias”, ou uso de campos de data dupla.
+• Histórico/local storage: Guardar temporariamente dados não enviados em caso de recarregamento de página.
+
+6. Conclusão
+
+O site propõe uma solução eficiente, intuitiva e moderna para digitalização e envio de folhas de presença, com foco na usabilidade para usuários não técnicos, principalmente em dispositivos móveis. O fluxo é pensado para minimizar erros, reduzir atritos e acelerar o processo de envio, com interface amigável e recursos de feedback visual constantes, promovendo uma experiência segura e produtiva.
+
+Obs.: Este documento pode ser utilizado como suporte para testes de usabilidade, planejamento de treinamento de usuários ou como base para comunicação de requisitos ao time de desenvolvimento e design.
+      `;
+
+      // Formatação no PDF
+      let y = 18;
+      pdf.setFontSize(14);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('Documento de Usabilidade Proposta do Site', 105, y, { align: 'center' });
+      y += 8;
+      pdf.setFontSize(12);
+      pdf.text('Scanner de Folhas de Presença', 105, y, { align: 'center' });
+      y += 10;
+      pdf.setFontSize(10);
+      pdf.setFont('helvetica', 'normal');
+      const split = pdf.splitTextToSize(docContent, 180);
+      pdf.text(split, 15, y);
+
+      pdf.save('Usabilidade_Scanner_Folhas_Presenca.pdf');
+    }
+  </script>
+</body>
+</html>

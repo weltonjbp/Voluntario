@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="manifest" href="manifest.json">
+  <title>Scanner de Folhas de Presença</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 10px;
+      max-width: 100%;
+      margin: 0;
+      background-color: #f4f4f4;
+    }
+    .container {
+      background-color: #fff;
+      padding: 10px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      max-width: 800px; /* Adicionado para melhor layout em telas largas */
+      margin: 20px auto; /* Centralizar container */
+    }
+    h1 {
+      text-align: center;
+      color: #333;
+      margin-bottom: 10px;
+      font-size: 1.5em; /* Aumentado para destaque */
+    }
+    .alert {
+      background: #ffeeba;
+      color: #85640c;
+      padding: 15px;
+      border: 1px solid #ffc107;
+      border-radius: 6px;
+      margin-bottom: 20px; /* Aumentado */
+      text-align: center;
+    }
+    .form-group {
+      margin-bottom: 15px; /* Aumentado */
+      display: block;
+    }
+    .form-group label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold; /* Adicionado */
+    }
+    input[type="text"],
+    input[type="month"],
+    input[type="file"] {
+      width: calc(100% - 22px); /* Ajustado para padding e borda */
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      box-sizing: border-box;
+    }
+    button {
+      width: 100%;
+      margin: 10px 0;
+      background-color: #007bff;
+      color: white;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 16px;
+      transition: background-color 0.3s ease;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    #addCategory {
+        background-color: #28a745; /* Verde para adicionar */
+    }
+    #addCategory:hover {
+        background-color: #218838;
+    }
+    #gerarPdfButton {
+        background-color: #dc3545; /* Vermelho para gerar PDF */
+    }
+    #gerarPdfButton:hover {
+        background-color: #c82333;
+    }
+    #preview {
+      margin-top: 20px; /* Aumentado */
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 10px;
+      border-top: 1px solid #eee; /* Adicionado separador */
+      padding-top: 20px; /* Adicionado espaçamento */
+    }
+    #preview h2 {
+        grid-column: 1 / -1; /* Título ocupa toda a largura */
+        text-align: center;
+        color: #333;
+        margin-bottom: 10px;
+    }
+    #preview img {
+      max-width: 100%;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+      height: auto;
+    }
+    input[type="file"] {
+      padding: 5px; /* Mantido, mas o padding geral do input já é 10px */
+    }
+    .camera-controls {
+      margin-top: 10px;
+      display: flex;
+      flex-wrap: wrap; /* Para melhor responsividade */
+      gap: 10px;
+      align-items: center;
+    }
+    .camera-controls video, .camera-controls canvas {
+      max-width: 100%; /* Responsivo */
+      height: auto;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    .camera-controls button {
+        width: auto; /* Ajustar largura dos botões de câmera */
+        padding: 8px 15px; /* Menor padding para botões de câmera */
+    }
+    .captured-image-list {
+        list-style: none;
+        padding: 0;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+        margin-top: 5px;
+    }
+    .captured-image-list li img {
+        max-height: 40px; /* Miniaturas menores */
+        border: 1px solid #ccc;
+        border-radius: 3px;
+    }
+    .category-group {
+        border: 1px solid #e0e0e0;
+        padding: 15px;
+        margin-bottom: 20px;
+        border-radius: 6px;
+        background-color: #f9f9f9;
+    }
+    @media (min-width: 768px) {
+      .container {
+        padding: 20px; /* Ajustado */
+      }
+      h1 {
+        margin-bottom: 20px;
+        font-size: 1.8em; /* Aumentado */
+      }
+      .form-group {
+        display: grid;
+        grid-template-columns: 150px 1fr; /* Ajustado para melhor alinhamento */
+        gap: 10px;
+        align-items: center;
+      }
+      .form-group label {
+        text-align: right;
+        padding-right: 10px;
+      }
+      input[type="text"],
+      input[type="month"],
+      input[type="file"] {
+        width: 100%; /* Ocupa o espaço da grid column */
+      }
+       .camera-controls {
+        grid-column: 2 / 3; /* Alinhar controles da câmera com o input */
+      }
+      .camera-controls button {
+         font-size: 0.9em;
+      }
+    }
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000; /* Aumentado z-index */
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgba(0,0,0,0.5); /* Mais escuro */
+    }
+    .modal-content {
+      background-color: #fefefe;
+      margin: 10% auto; /* Ajustado para melhor centralização vertical */
+      padding: 25px;
+      border: 1px solid #888;
+      width: 90%;
+      max-width: 600px; /* Definido max-width */
+      border-radius: 8px;
+      position: relative;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    }
+    .close-button {
+      color: #aaa;
+      float: right;
+      font-size: 32px; /* Aumentado */
+      font-weight: bold;
+      line-height: 1; /* Para melhor alinhamento */
+    }
+    .close-button:hover,
+    .close-button:focus {
+      color: black;
+      text-decoration: none;
+      cursor: pointer;
+    }
+    .modal-controls {
+      margin-top: 20px; /* Aumentado */
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end; /* Alinhado à direita */
+    }
+    .modal-controls button {
+        width: auto;
+        padding: 10px 20px;
+    }
+    #modalPreviewList {
+      display: flex;
+      gap: 8px; /* Aumentado */
+      margin-top: 15px;
+      overflow-x: auto;
+      padding-bottom: 5px; /* Espaço para scrollbar */
+    }
+    #modalPreviewList img {
+      max-height: 60px; /* Aumentado */
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    /* Estilo para feedback de carregamento */
+    #loadingIndicator {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(255, 255, 255, 0.8);
+        z-index: 2000;
+        text-align: center;
+        padding-top: 20%;
+    }
+    #loadingIndicator p {
+        font-size: 1.2em;
+        color: #333;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Envio de Folhas de Presença</h1>
+    </header>
+    <section class="alert-section">
+      <div class="alert">
+        ⚠️ Ignorar vias amarelas e carbono. Apenas folhas brancas.
+      </div>
+    </section>
+    <section class="form-section">
+      <form id="uploadForm">
+        <div class="form-group">
+          <label for="house">Casa de Oração:</label>
+          <input type="text" id="house" required>
+        </div>
+        <div class="form-group">
+          <label for="month">Ano Mês de Competência:</label>
+          <input type="month" id="month" required>
+        </div>
+        <div class="form-group">
+          <label for="days">Período de Dias:</label>
+          <input type="text" id="days" placeholder="Ex: 10 a 17" required>
+        </div>
+        <div id="categories">
+          <div class="category-group" data-category-index="0">
+            <div class="form-group">
+              <label>Livro:</label>
+              <input type="text" class="category-name" required>
+            </div>
+            <div class="form-group">
+              <label>Imagens do Livro (Upload):</label>
+              <input type="file" class="category-images" multiple accept="image/*">
+            </div>
+            <div class="form-group camera-controls-group">
+                <label>Imagens do Livro (Câmera):</label>
+                <div class="camera-controls">
+                    <video class="camera-preview" autoplay playsinline style="display: none; max-width: 200px;"></video>
+                    <button type="button" class="capture-button">Abrir Câmera</button>
+                    <canvas class="captured-image" style="display: none;"></canvas>
+                    <ul class="captured-image-list"></ul>
+                </div>
+            </div>
+            <input type="hidden" class="captured-images-data" name="captured_images_0" value="">
+          </div>
+        </div>
+        <button type="button" id="addCategory">Adicionar Livro</button>
+        <button type="button" id="gerarPdfButton">Gerar PDF e Enviar</button>
+      </form>
+    </section>
+    <section class="preview-section">
+      <div id="preview">
+         <h2>Pré-visualização (Uploads)</h2>
+       </div>
+    </section>
+  </div>
+
+  <div id="cameraModal" class="modal">
+    <div class="modal-content">
+      <span class="close-button">&times;</span>
+      <h2>Captura de Imagem</h2>
+      <video id="modalCameraPreview" autoplay playsinline style="width: 100%; height: auto; border: 1px solid #ccc; border-radius: 4px; margin-bottom: 10px;"></video>
+      <canvas id="modalCapturedImage" style="display: none;"></canvas>
+      <div id="modalPreviewListContainer" style="margin-bottom:10px;">
+        <p style="font-size:0.9em; color:#555;">Imagens capturadas nesta sessão:</p>
+        <div id="modalPreviewList"></div>
+      </div>
+      <div class="modal-controls">
+        <button type="button" id="modalCaptureButton">Capturar Foto</button>
+        <button type="button" id="modalConfirmButton" style="display: none; background-color:#28a745;">Confirmar e Usar</button>
+        <button type="button" id="modalCancelButton" style="background-color:#6c757d;">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="loadingIndicator">
+    <p>Gerando PDF, por favor aguarde...</p>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script>
+    let categoryCounter = 1;
+    let stream = null;
+    const cameraModal = document.getElementById('cameraModal');
+    const modalCameraPreview = document.getElementById('modalCameraPreview');
+    const modalCaptureButton = document.getElementById('modalCaptureButton');
+    const modalCancelButton = document.getElementById('modalCancelButton');
+    const modalConfirmButton = document.getElementById('modalConfirmButton');
+    const modalCapturedImage = document.getElementById('modalCapturedImage');
+    const modalPreviewList = document.getElementById('modalPreviewList');
+    const loadingIndicator = document.getElementById('loadingIndicator');
+
+    function showLoading() {
+        loadingIndicator.style.display = 'block';
+    }
+
+    function hideLoading() {
+        loadingIndicator.style.display = 'none';
+    }
+
+    function openCameraModal(categoryGroup) {
+      cameraModal.dataset.currentCategoryId = categoryGroup.dataset.categoryIndex;
+      modalPreviewList.innerHTML = '';
+      modalConfirmButton.style.display = 'none';
+      cameraModal.style.display = "block";
+      document.body.style.overflow = 'hidden';
+
+      navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } } })
+        .then(s => {
+          stream = s;
+          modalCameraPreview.srcObject = stream;
+          modalCameraPreview.style.display = 'block';
+        })
+        .catch(error => {
+          console.error('Erro ao acessar a câmera traseira:', error);
+          navigator.mediaDevices.getUserMedia({ video: true })
+            .then(s => {
+              stream = s;
+              modalCameraPreview.srcObject = stream;
+              modalCameraPreview.style.display = 'block';
+              console.warn('Câmera traseira não disponível, usando câmera padrão.');
+            })
+            .catch(fallbackError => {
+              console.error('Erro ao acessar qualquer câmera:', fallbackError);
+              alert('Erro ao acessar a câmera. Verifique as permissões.');
+              closeModal();
+            });
+        });
+    }
+
+    function closeModal() {
+      cameraModal.style.display = "none";
+      document.body.style.overflow = 'auto';
+      if (stream) {
+        stream.getVideoTracks().forEach(track => track.stop());
+        stream = null;
+      }
+      modalCameraPreview.style.display = 'none';
+      modalConfirmButton.style.display = 'none';
+      modalPreviewList.innerHTML = '';
+    }
+
+    modalCaptureButton.addEventListener('click', () => {
+      if (!modalCameraPreview.videoWidth || !modalCameraPreview.videoHeight || !modalCameraPreview.srcObject) {
+        console.error('Dimensões do vídeo ou stream não disponíveis.');
+        alert('A câmera não está pronta. Tente novamente.');
+        return;
+      }
+      modalCapturedImage.width = modalCameraPreview.videoWidth;
+      modalCapturedImage.height = modalCameraPreview.videoHeight;
+      const context = modalCapturedImage.getContext('2d');
+      context.drawImage(modalCameraPreview, 0, 0, modalCapturedImage.width, modalCapturedImage.height);
+
+      const imageDataURL = modalCapturedImage.toDataURL('image/jpeg', 0.9);
+      const img = document.createElement('img');
+      img.src = imageDataURL;
+      img.alt = "Imagem capturada";
+      modalPreviewList.appendChild(img);
+      modalConfirmButton.style.display = 'inline-block';
+    });
+
+    modalCancelButton.addEventListener('click', closeModal);
+
+    modalConfirmButton.addEventListener('click', () => {
+      const currentCategoryId = cameraModal.dataset.currentCategoryId;
+      if (currentCategoryId === undefined || currentCategoryId === '') {
+          console.error('ID da categoria atual não encontrado.');
+          closeModal();
+          return;
+      }
+      const currentCategoryGroup = document.querySelector(`.category-group[data-category-index="${currentCategoryId}"]`);
+      if (currentCategoryGroup) {
+        const capturedImagesDataInput = currentCategoryGroup.querySelector('.captured-images-data');
+        const capturedImageListOnPage = currentCategoryGroup.querySelector('.captured-image-list');
+        const modalPreviewImagesSrc = Array.from(modalPreviewList.querySelectorAll('img')).map(img => img.src);
+
+        let existingCaptures = [];
+        try {
+            existingCaptures = JSON.parse(capturedImagesDataInput.value || '[]');
+        } catch (e) {
+            console.warn("Erro ao parsear JSON de capturas existentes, iniciando com lista vazia.", e);
+            existingCaptures = [];
+        }
+
+        const allCaptures = existingCaptures.concat(modalPreviewImagesSrc);
+        capturedImagesDataInput.value = JSON.stringify(allCaptures);
+
+        capturedImageListOnPage.innerHTML = '';
+        allCaptures.forEach(dataUrl => {
+          const li = document.createElement('li');
+          const img = document.createElement('img');
+          img.src = dataUrl;
+          img.alt = "Miniatura da imagem capturada";
+          li.appendChild(img);
+          capturedImageListOnPage.appendChild(li);
+        });
+      } else {
+          console.error(`Grupo da categoria com índice ${currentCategoryId} não encontrado.`);
+      }
+      closeModal();
+    });
+
+    function attachCaptureButtonEvent(categoryGroup) {
+      const captureButton = categoryGroup.querySelector('.capture-button');
+      if (captureButton) {
+        captureButton.addEventListener('click', () => {
+          openCameraModal(categoryGroup);
+        });
+      }
+    }
+    
+    // ==================================================================
+    // INÍCIO DA SEÇÃO DE CÓDIGO COM A LÓGICA DE COMPARTILHAMENTO
+    // ==================================================================
+
+    /**
+     * Carrega uma imagem (File ou DataURL) e retorna uma Promise com o elemento da imagem.
+     */
+    function loadImage(imageData) {
+        return new Promise((resolve, reject) => {
+            const img = new Image();
+            img.onload = () => resolve(img);
+            img.onerror = (err) => {
+                console.error("Erro ao carregar imagem para o PDF:", imageData);
+                reject(err);
+            };
+            if (imageData instanceof File) {
+                const reader = new FileReader();
+                reader.onload = (e) => img.src = e.target.result;
+                reader.readAsDataURL(imageData);
+            } else if (typeof imageData === 'string') {
+                img.src = imageData; // Assumindo Data URL
+            } else {
+                reject(new Error("Formato de imagem desconhecido"));
+            }
+        });
+    }
+
+    /**
+     * Tenta compartilhar o arquivo PDF usando a Web Share API.
+     * Se não for possível, força o download do arquivo.
+     * @param {jsPDF} pdf O objeto jsPDF pronto.
+     * @param {string} filename O nome do arquivo para salvar ou compartilhar.
+     */
+    async function shareOrDownloadPdf(pdf, filename) {
+        try {
+            // Gera o PDF como um 'blob' em vez de salvar diretamente
+            const pdfBlob = pdf.output('blob');
+
+            // Cria um objeto File a partir do blob, que é necessário para a Web Share API
+            const file = new File([pdfBlob], filename, {
+                type: 'application/pdf',
+            });
+
+            // Verifica se o navegador suporta navigator.share e se pode compartilhar arquivos
+            if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+                await navigator.share({
+                    title: 'Folhas de Presença',
+                    text: `Segue o arquivo PDF: ${filename}`,
+                    files: [file],
+                });
+                console.log('Arquivo compartilhado com sucesso!');
+            } else {
+                // Fallback para navegadores que não suportam o compartilhamento de arquivos
+                console.warn('Web Share API não suportada. Forçando o download.');
+                alert('Seu navegador não suporta o compartilhamento direto. O arquivo será baixado.');
+                pdf.save(filename); // O comportamento original de download
+            }
+        } catch (error) {
+            // O erro 'AbortError' acontece se o usuário cancelar o compartilhamento.
+            if (error.name === 'AbortError') {
+                console.log('Compartilhamento cancelado pelo usuário.');
+            } else {
+                console.error('Erro ao tentar compartilhar o PDF:', error);
+                // Se o compartilhamento falhar por outro motivo, ainda oferece o download.
+                alert('Não foi possível compartilhar o arquivo, o download será iniciado.');
+                pdf.save(filename);
+            }
+        }
+    }
+
+
+    /**
+     * Função principal que gera o PDF e chama a função de compartilhamento/download.
+     */
+    async function generatePDF() {
+        showLoading();
+
+        try {
+            const house = document.getElementById('house').value.trim();
+            const monthInput = document.getElementById('month').value;
+            const days = document.getElementById('days').value.trim();
+
+            if (!house || !monthInput || !days) {
+                alert("Por favor, preencha todos os campos obrigatórios: Casa de Oração, Mês e Período.");
+                return;
+            }
+
+            const [year, monthNum] = monthInput.split('-');
+            const monthFormatted = `${monthNum}/${year}`;
+
+            const categoryGroups = document.querySelectorAll('.category-group');
+            const allImages = [];
+            let hasContent = false;
+
+            categoryGroups.forEach(group => {
+                const categoryName = group.querySelector('.category-name').value.trim();
+                const fileInputs = group.querySelector('.category-images');
+                const capturedImagesDataInput = group.querySelector('.captured-images-data');
+                const capturedImagesData = JSON.parse(capturedImagesDataInput.value || '[]');
+                const fileImages = Array.from(fileInputs.files);
+
+                const categoryImages = [...fileImages, ...capturedImagesData];
+
+                if (categoryImages.length > 0) {
+                    hasContent = true;
+                    const name = categoryName || "Livro Sem Título";
+                    allImages.push({ name, images: categoryImages });
+                }
+            });
+
+            if (!hasContent) {
+                alert("Nenhuma imagem foi adicionada ou capturada para gerar o PDF.");
+                return;
+            }
+
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
+
+            const pageWidth = pdf.internal.pageSize.getWidth();
+            const pageHeight = pdf.internal.pageSize.getHeight();
+            const margin = 15;
+            let yPos = margin + 10;
+            const lineHeight = 7;
+
+            // Cabeçalho
+            pdf.setFontSize(18);
+            pdf.setFont("helvetica", "bold");
+            pdf.text(`Casa de Oração: ${house}`, pageWidth / 2, yPos, { align: 'center' });
+            yPos += lineHeight + 2;
+            pdf.setFontSize(14);
+            pdf.setFont("helvetica", "normal");
+            pdf.text(`Mês de Competência: ${monthFormatted}`, pageWidth / 2, yPos, { align: 'center' });
+            yPos += lineHeight;
+            pdf.text(`Período: ${days}`, pageWidth / 2, yPos, { align: 'center' });
+            yPos += lineHeight + 5;
+            pdf.setLineWidth(0.5);
+            pdf.line(margin, yPos, pageWidth - margin, yPos);
+            yPos += 10;
+
+            // Loop para adicionar imagens
+            for (const category of allImages) {
+                if (yPos + lineHeight * 2 > pageHeight - margin) {
+                    pdf.addPage();
+                    yPos = margin;
+                }
+                pdf.setFontSize(16);
+                pdf.setFont("helvetica", "bold");
+                pdf.text(category.name, margin, yPos);
+                yPos += lineHeight + 3;
+
+                for (const [imgIndex, imageData] of category.images.entries()) {
+                    try {
+                        const img = await loadImage(imageData);
+                        const aspectRatio = img.width / img.height;
+                        let imgWidth = pageWidth - 2 * margin;
+                        let imgHeight = imgWidth / aspectRatio;
+                        const maxImgHeight = pageHeight * 0.65;
+                        if (imgHeight > maxImgHeight) {
+                            imgHeight = maxImgHeight;
+                            imgWidth = imgHeight * aspectRatio;
+                        }
+                        let xImgPos = (pageWidth - imgWidth) / 2;
+
+                        if (yPos + imgHeight > pageHeight - margin - 10) {
+                            pdf.addPage();
+                            yPos = margin;
+                            if (imgIndex > 0) {
+                                pdf.setFontSize(14);
+                                pdf.setFont("helvetica", "bolditalic");
+                                pdf.text(`${category.name} (continuação)`, margin, yPos);
+                                yPos += lineHeight + 2;
+                            }
+                        }
+
+                        let format = 'JPEG';
+                        if (typeof imageData === 'string' && imageData.startsWith('data:image/png')) {
+                            format = 'PNG';
+                        }
+                        pdf.addImage(img.src, format, xImgPos, yPos, imgWidth, imgHeight, undefined, 'SLOW');
+                        yPos += imgHeight + 10;
+
+                    } catch (error) {
+                        console.error("Falha ao processar uma imagem, adicionando placeholder:", error);
+                        if (yPos + 20 > pageHeight - margin) { pdf.addPage(); yPos = margin; }
+                        pdf.setFontSize(10);
+                        pdf.setTextColor(255, 0, 0);
+                        pdf.text("Erro ao carregar esta imagem.", margin, yPos);
+                        pdf.setTextColor(0, 0, 0);
+                        yPos += 10;
+                    }
+                }
+                yPos += 5;
+            }
+
+            // Adicionar números de página
+            const pageCount = pdf.internal.getNumberOfPages();
+            pdf.setFontSize(10);
+            pdf.setFont("helvetica", "italic");
+            for (let i = 1; i <= pageCount; i++) {
+                pdf.setPage(i);
+                pdf.text(`Página ${i} de ${pageCount}`, pageWidth - margin, pageHeight - margin + 5, { align: 'right' });
+            }
+
+            const filename = `Folhas_Presenca_${year}_${monthNum}_${days.replace(/\s+/g, '-')}.pdf`;
+            
+            // Chamar nossa nova função de compartilhamento/download
+            await shareOrDownloadPdf(pdf, filename);
+
+        } catch (error) {
+            console.error('Ocorreu um erro ao gerar o PDF:', error);
+            alert('Ocorreu um erro inesperado ao gerar o PDF. Verifique o console para detalhes.');
+        } finally {
+            hideLoading();
+        }
+    }
+
+    // ==================================================================
+    // FIM DA SEÇÃO DE CÓDIGO MODIFICADO
+    // ==================================================================
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const closeButton = cameraModal.querySelector('.close-button');
+      if(closeButton) closeButton.addEventListener('click', closeModal);
+
+      const initialCategoryGroup = document.querySelector('.category-group');
+      if (initialCategoryGroup) {
+        attachCaptureButtonEvent(initialCategoryGroup);
+      }
+
+      document.getElementById('addCategory').addEventListener('click', function () {
+        const newCategoryIndex = categoryCounter++;
+        const newCategory = document.createElement('div');
+        newCategory.classList.add('category-group');
+        newCategory.dataset.categoryIndex = newCategoryIndex;
+        newCategory.innerHTML = `
+          <div class="form-group">
+            <label>Livro:</label>
+            <input type="text" class="category-name" required>
+          </div>
+          <div class="form-group">
+            <label>Imagens do Livro (Upload):</label>
+            <input type="file" class="category-images" multiple accept="image/*">
+          </div>
+          <div class="form-group camera-controls-group">
+            <label>Imagens do Livro (Câmera):</label>
+            <div class="camera-controls">
+                <video class="camera-preview" autoplay playsinline style="display: none; max-width: 200px;"></video>
+                <button type="button" class="capture-button">Abrir Câmera</button>
+                <canvas class="captured-image" style="display: none;"></canvas>
+                <ul class="captured-image-list"></ul>
+            </div>
+          </div>
+          <input type="hidden" class="captured-images-data" name="captured_images_${newCategoryIndex}" value="">
+        `;
+        document.getElementById('categories').appendChild(newCategory);
+        attachCaptureButtonEvent(newCategory);
+      });
+
+      document.getElementById('categories').addEventListener('change', function (e) {
+        if (e.target.classList.contains('category-images')) {
+          const previewContainer = document.getElementById('preview');
+          previewContainer.innerHTML = '<h2>Pré-visualização (Uploads)</h2>'; 
+
+          const allFileInputs = document.querySelectorAll('.category-images');
+          allFileInputs.forEach(input => {
+            const files = input.files;
+            for (let i = 0; i < files.length; i++) {
+              const reader = new FileReader();
+              reader.onload = function (event) {
+                const img = document.createElement('img');
+                img.src = event.target.result;
+                img.alt = "Pré-visualização de imagem carregada";
+                previewContainer.appendChild(img);
+              };
+              reader.readAsDataURL(files[i]);
+            }
+          });
+        }
+      });
+
+      const generatePdfButton = document.getElementById('gerarPdfButton');
+      if (generatePdfButton) {
+        generatePdfButton.addEventListener('click', generatePDF);
+      } else {
+        console.error('Botão "Gerar PDF" não encontrado.');
+      }
+    });
+  </script>
+</body>
+</html>
